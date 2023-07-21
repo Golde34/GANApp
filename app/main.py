@@ -1,13 +1,19 @@
-from typing import Union
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, Depends, Form, status
 from Generate import generate
 from utils import convert2_
 import os
 
+from modules.schemas import ImageGenerationRequest, Caption, MyImage
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from sqlalchemy.orm import Session
+
+from modules import crud, models, schemas
+from modules.database import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -17,30 +23,39 @@ app.mount("/Generate_images", StaticFiles(directory="model/Generate_images"), na
 app.mount("/pretrained", StaticFiles(directory="model/pretrained"), name="pretrained")
 templates = Jinja2Templates(directory="templates")
 
-class ImageGenerationRequest(BaseModel):
-    model: str 
-    path: str = None
-    prompt: str = None
-    number: int = 1
-    idx: int = 1
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-class MyImage(BaseModel):
-    image: str
 
-class Caption(BaseModel):
-    cap: Union[str, None] = None
-
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 @app.get("/index", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/register", response_class=HTMLResponse)
-async def index(request: Request):
+@app.get("/register")
+def register():
     return templates.TemplateResponse("register.html", {"request": request})
+
+@app.post("/register")
+async def register(request: Request,
+                   username: str = Form(...), email: str = Form(...), hashed_password: str = Form(...), confirm_password: str = Form(...),
+                   db: Session = Depends(get_db)):
+    user = models.User(username=username, email=email, hashed_password=hashed_password)
+
+    db_user = crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    crud.create_user(db, user)
+
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):

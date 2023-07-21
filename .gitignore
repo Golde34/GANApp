@@ -5,9 +5,11 @@
 *\dist
 *\.bin
 *\.csv
+*\ProGan
 
 .ipynb_checkpoints
 __config__.py
 *\.parquet
 *\tmp
 *\.pth
+*\logs

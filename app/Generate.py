@@ -28,15 +28,15 @@ def generate_with_scratch_model(model_name, path, number = 1, idx = 0):
         gen = Generator(config_progressive.Z_DIM, config_progressive.IN_CHANNELS, img_channels=config_progressive.CHANNELS_IMG).to(config_progressive.DEVICE)
         opt_gen = optim.Adam(gen.parameters(), lr=config_progressive.LEARNING_RATE, betas=(0.0, 0.99))
 
-        load_checkpoint('../weightCelebA/generator.pth', gen, opt_gen, config_progressive.LEARNING_RATE)
+        load_checkpoint('../../weightCelebA/generator.pth', gen, opt_gen, config_progressive.LEARNING_RATE)
         tensor, path_save = generate_examples(gen, 3, root_path= path, n = number)
         print(path_save)
     else:
-        dataset = datasets.MNIST(root="../datasets/mnist", train=True, transform=transforms.ToTensor(), download = True)
+        dataset = datasets.MNIST(root="../../datasets/mnist", train=True, transform=transforms.ToTensor(), download = True)
         model = VAE(config_VAE.in_dims, config_VAE.h_dims, config_VAE.z_dims).to(config_VAE.device)
         optimizer = optim.Adam(model.parameters(), lr=config_VAE.lr)
         
-        load_checkpoint('../weightVAE/VAE.pth', model, optimizer, config_VAE.lr)
+        load_checkpoint('../../weightVAE/VAE.pth', model, optimizer, config_VAE.lr)
         tensor, path_save = inference(dataset, model, idx, num_examples=number)
     print(f"Results saved to {path_save}")
     return path_save
@@ -85,7 +85,7 @@ def generate_with_pretrained_model(name, prompt, url = None):
         # subprocess.run(["rm", "-rf", "pretrained/GFPGAN/results"], cwd="Sofware-Engineering-Final-Project")
         subprocess.run(command, cwd="../app/model")
         # subprocess.run(["ls", "pretrained/GFPGAN/results/cmp"], cwd="../Sofware-Engineering-Final-Project/")
-        path = "/Generate_images/GFPGAN/gfp.png"
+        path = "/model/Generate_images/GFPGAN/gfp.png"
         # path = "/Generate_images/GFPGAN/gfp_00.png"
         return path 
     else:
@@ -109,7 +109,7 @@ def generate_with_pretrained_model(name, prompt, url = None):
                 gen_image = pipe(prompt, image=input_img, num_inference_steps=10, image_guidance_scale=1).images[0]
             path = f"/model/Generative_images/{name}/pdf.png"
             gen_image = gen_image.resize((512,512))
-            gen_image.save(f"/model/Generate_images/{name}/pdf.png")
+            gen_image.save(f"model/Generate_images/{name}/pdf.png")
             return path 
 
 

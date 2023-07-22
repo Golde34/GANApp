@@ -33,7 +33,7 @@ def get_db():
 
 @app.get("/")
 async def home(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/index", response_class=HTMLResponse)
 async def index(request: Request):
@@ -53,6 +53,10 @@ async def register(request: Request,
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    db_user = crud.get_user_by_username(db, email=user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+
     crud.create_user(db, user)
 
     return templates.TemplateResponse("login.html", {"request": request})
@@ -60,6 +64,17 @@ async def register(request: Request,
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+@app.post("/login")
+async def login(request: Request,
+                   username: str = Form(...), password: str = Form(...),
+                   db: Session = Depends(get_db)):
+    user = models.User(username=username, hashed_password=password)
+    u = crud.get_user_by_username(db, username=user.username)
+    if u != None:
+        return templates.TemplateResponse("index.html", {"request": request, "user":u})
+    else:
+        return templates.TemplateResponse("login.html", {"request": request, "message": "Login failed! Try to correct username or password"})
 
 @app.post("/generateImage", response_class=JSONResponse)
 async def generate_image(request: ImageGenerationRequest):

@@ -11,10 +11,11 @@
 <body>
     <div class="container">
         <h1 class="heading">Generator</h1>
-        <form id="login-form">
+        <form id="login-form" action="/login" method="post">
+            <h2>{{ message }}</h2>
             <div>
-                <label for="account" class="form-label">Account:</label>
-                <input type="text" id="account" name="account" class="form-input">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" id="username" name="username" class="form-input">
             </div>
             <div>
                 <label for="password" class="form-label">Password:</label>
@@ -30,7 +31,7 @@
         </form>
     </div>
 
-    <script src="/static/login.js"></script>
+<!--    <script src="/static/login.js"></script>-->
 </body>
 
 </html>
